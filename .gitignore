@@ -1,0 +1,4 @@
+*.json
+!manifest.webmanifest
+*.log
+.DS_Store

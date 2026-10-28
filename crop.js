@@ -1,0 +1,23 @@
+/* Square avatar cropper. The original image remains in memory only. */
+window.AvatarCrop={open(image){return new Promise(resolve=>{
+ const dialog=document.createElement('dialog');dialog.className='crop-dialog';
+ dialog.innerHTML=`<div class="sheet-content"><div class="sheet-head"><h2>調整頭像照片</h2><button id="cropClose" type="button" aria-label="取消裁切">×</button></div><p class="hint">拖曳照片調整位置，雙指或下方滑桿可放大縮小。框內就是要保留的正方形。</p><div class="crop-stage" tabindex="0" role="img" aria-label="照片裁切區，可拖曳或用方向鍵移動照片"><canvas></canvas><div class="crop-grid" aria-hidden="true"></div></div><div class="crop-zoom"><button type="button" id="zoomOut" aria-label="縮小照片">−</button><input id="cropZoom" type="range" min="1" max="4" step="0.01" value="1" aria-label="照片縮放"><button type="button" id="zoomIn" aria-label="放大照片">＋</button><output id="zoomValue">1.00×</output></div><button class="link-button" type="button" id="cropReset">重設位置與大小</button><div class="actions"><button class="secondary" type="button" id="cropCancel">取消</button><button class="primary" type="button" id="cropConfirm">使用這個範圍</button></div></div>`;
+ document.body.append(dialog);dialog.showModal();
+ const stage=dialog.querySelector('.crop-stage'),canvas=stage.querySelector('canvas'),ctx=canvas.getContext('2d'),range=dialog.querySelector('#cropZoom');
+ let size=stage.getBoundingClientRect().width,zoom=1,x=0,y=0,settled=false,pinch=null;const pointers=new Map();
+ const scale=()=>Math.max(size/image.naturalWidth,size/image.naturalHeight)*zoom;
+ function draw(){const s=scale();x=Math.max(-(image.naturalWidth*s-size)/2,Math.min((image.naturalWidth*s-size)/2,x));y=Math.max(-(image.naturalHeight*s-size)/2,Math.min((image.naturalHeight*s-size)/2,y));const dpr=Math.min(devicePixelRatio||1,2);canvas.width=Math.round(size*dpr);canvas.height=Math.round(size*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#e8e3d6';ctx.fillRect(0,0,size,size);ctx.drawImage(image,size/2+x-image.naturalWidth*s/2,size/2+y-image.naturalHeight*s/2,image.naturalWidth*s,image.naturalHeight*s);range.value=zoom;dialog.querySelector('#zoomValue').value=zoom.toFixed(2)+'×';}
+ function setZoom(n){const old=zoom;zoom=Math.max(1,Math.min(4,n));x*=zoom/old;y*=zoom/old;draw()}
+ const pos=e=>{const r=stage.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top}};
+ const gesture=()=>{if(pointers.size===2){const [a,b]=[...pointers.values()];pinch={distance:Math.max(1,Math.hypot(a.x-b.x,a.y-b.y)),mx:(a.x+b.x)/2,my:(a.y+b.y)/2,zoom,x,y}}else pinch=null};
+ stage.onpointerdown=e=>{e.preventDefault();stage.setPointerCapture(e.pointerId);pointers.set(e.pointerId,pos(e));gesture()};
+ stage.onpointermove=e=>{if(!pointers.has(e.pointerId))return;e.preventDefault();const old=pointers.get(e.pointerId),p=pos(e);pointers.set(e.pointerId,p);if(pointers.size===2&&pinch){const [a,b]=[...pointers.values()],ratio=Math.hypot(a.x-b.x,a.y-b.y)/pinch.distance;zoom=Math.max(1,Math.min(4,pinch.zoom*ratio));const actual=zoom/pinch.zoom;x=(a.x+b.x)/2-size/2-(pinch.mx-size/2-pinch.x)*actual;y=(a.y+b.y)/2-size/2-(pinch.my-size/2-pinch.y)*actual;}else if(pointers.size===1){x+=p.x-old.x;y+=p.y-old.y}draw()};
+ const end=e=>{pointers.delete(e.pointerId);gesture()};stage.onpointerup=end;stage.onpointercancel=end;stage.onlostpointercapture=end;
+ stage.onkeydown=e=>{const d=e.shiftKey?25:8;if(e.key==='ArrowLeft')x-=d;else if(e.key==='ArrowRight')x+=d;else if(e.key==='ArrowUp')y-=d;else if(e.key==='ArrowDown')y+=d;else return;e.preventDefault();draw()};
+ range.oninput=()=>setZoom(Number(range.value));dialog.querySelector('#zoomOut').onclick=()=>setZoom(zoom-.15);dialog.querySelector('#zoomIn').onclick=()=>setZoom(zoom+.15);dialog.querySelector('#cropReset').onclick=()=>{zoom=1;x=y=0;draw()};
+ const resize=new ResizeObserver(()=>{const n=stage.getBoundingClientRect().width;if(n>0&&n!==size){x*=n/size;y*=n/size;size=n;draw()}});resize.observe(stage);
+ function finish(value){if(settled)return;settled=true;resize.disconnect();dialog.close();dialog.remove();resolve(value)}
+ dialog.querySelector('#cropClose').onclick=()=>finish(null);dialog.querySelector('#cropCancel').onclick=()=>finish(null);dialog.addEventListener('cancel',e=>{e.preventDefault();finish(null)});
+ dialog.querySelector('#cropConfirm').onclick=()=>{const out=document.createElement('canvas');out.width=out.height=256;const c=out.getContext('2d'),s=scale(),factor=256/size;c.fillStyle='#f3eee4';c.fillRect(0,0,256,256);c.drawImage(image,(size/2+x-image.naturalWidth*s/2)*factor,(size/2+y-image.naturalHeight*s/2)*factor,image.naturalWidth*s*factor,image.naturalHeight*s*factor);finish(out.toDataURL('image/jpeg',.85))};
+ draw();
+})}};
