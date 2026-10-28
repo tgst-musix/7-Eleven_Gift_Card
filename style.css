@@ -8,3 +8,19 @@
 .header-actions{display:flex;align-items:center;gap:15px}.account-button{font-size:11px;color:#6c7d53;border:1px solid #c6d0b5;padding:10px 12px;border-radius:10px;background:#e9eddd;max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.recovery-value{display:block;width:100%;min-height:95px;padding:13px;margin:18px 0;resize:none;border:1px solid #c9d1b9;background:#fffdf5;border-radius:12px;color:#48633e;font:13px/1.8 ui-monospace,monospace;word-break:break-all}.header-actions .icon{min-width:38px}@media(max-width:750px){.header-actions{gap:9px}.account-button{font-size:10px;padding:8px;max-width:80px}.brand-copy>#walletName{max-width:calc(100vw - 235px)}}
 .install-steps{padding-left:23px;margin:20px 0 25px}.install-steps li{padding-left:6px;margin:19px 0;color:#516e43}.install-steps strong{font-size:14px}.install-steps p{font-size:12px;color:var(--muted);line-height:1.9;margin:8px 0}body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
 .wallet-help{background:#eeeadb;border:1px solid #dfd8c3;border-radius:12px;padding:16px;margin:17px 0}.wallet-help strong{font-size:13px;color:#7c6849}.wallet-help p{font-size:12px;line-height:1.9;color:#8d8068;margin:9px 0 0}
+/* Card presentation, gesture tracking and the local trash animation. */
+.payment-sheet{overflow-x:hidden;overscroll-behavior:contain;transform-origin:50% 100%}
+.payment-content{touch-action:pan-y pinch-zoom;backface-visibility:hidden;overflow-wrap:anywhere}
+.payment-content .barcode-area,.payment-content .balance-box{-webkit-user-select:none;user-select:none}
+.payment-content img,.payment-content svg{-webkit-user-drag:none}
+.payment-content .barcode-area{box-shadow:0 12px 30px #2d4b380b}
+.payment-sheet[data-turning] .payment-content{pointer-events:none;will-change:transform,opacity}
+.swipe-hint{text-align:center;font-size:11px;letter-spacing:.06em;color:#899276;margin:17px 0 0}
+.swipe-hint+.navigation{margin-top:3px}
+.discard-stage{position:relative;height:218px;display:grid;justify-items:center;align-content:start;padding-top:8px;isolation:isolate}
+.discard-paper{position:relative;overflow:hidden;width:230px;max-width:80%;height:122px;background:linear-gradient(140deg,#eef0df,#fffbed 65%,#e6e9d4);border:1px solid #cdd5b9;box-shadow:0 12px 22px #384c2414;border-radius:16px;padding:17px 20px;display:flex;flex-direction:column;gap:5px;color:#526842;transform-origin:center}
+.discard-symbol{font-size:24px;line-height:1}.discard-paper strong{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.discard-paper small{font-size:11px;color:#879174}
+.paper-folds{position:absolute;inset:0;pointer-events:none;opacity:0;background:conic-gradient(from 40deg at 30% 40%,#384c2440,transparent 45deg,#fff9 90deg,transparent 130deg,#384c244d 180deg,transparent 210deg,#fff9 270deg,transparent 320deg),linear-gradient(32deg,transparent 46%,#384c2444 49%,#fff9 51%,transparent 54%)}
+.discard-bin{position:absolute;bottom:7px;right:26px;width:46px;height:54px;color:#6c7c55}.discard-bin svg{display:block;width:100%;height:100%}
+#sheet[data-discarding] .discard-stage{overflow:hidden}
+@media(prefers-reduced-motion:reduce){.payment-sheet,.payment-content,.discard-paper,.discard-bin{animation:none!important;transition:none!important;will-change:auto!important}}
